@@ -10,7 +10,7 @@ client = discord.Client(command_prefix='!', intents=intents)
 
 # Map username to {day: [cumulative, debt, flag]}
 # flag is whether this day's debt has been carried over to the next day
-data: dict[str: dict[str: list[int, int]]] = {}
+data: dict = {}
 
 if os.path.exists('data.pkl'):
     with open('data.pkl', 'rb') as f:
