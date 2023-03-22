@@ -38,6 +38,7 @@ async def on_message(message: discord.Message) -> None:
     # If the message just contains a number (session count), log it
     if mstr.isnumeric() or mstr.startswith('-') and mstr[1:].isnumeric():
         user: str = message.author.name
+        session: int = int(message.content)
 
         if user not in data:
             data[user] = {}
@@ -46,7 +47,6 @@ async def on_message(message: discord.Message) -> None:
             data[user][today] = [0, 0, False]
 
         if data[user][today][0] < 100:
-            session: int = int(message.content)
 
             # Pay off debt first, then accumulate new pushups
             if data[user][today][1] > 0:
@@ -77,7 +77,7 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send(response)
 
         else:
-            await message.channel.send(f"{message.author.mention}, stop! You're done for the day")
+            await message.channel.send(f"{message.author.mention}, stop! You're done for the day\n(Bonus session: {session})")
 
         await message.delete()
 
