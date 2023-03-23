@@ -28,11 +28,14 @@ async def on_ready() -> None:
     await client.change_presence(activity=discord.Game(name='help! for usage'))
     await timed_tasks.start()
     await msg_channel.send('💪')
+    print(msg_channel.name, msg_channel.id, flush=True)
 
 
 @client.event
 async def on_message(message: discord.Message) -> None:
     """Perform actions when a message is sent."""
+    print(message.channel.name, message.channel.id, flush=True)
+
     if message.author == client.user:
         if 'Cumulative: 100' in message.content:
             await message.add_reaction('💯')
