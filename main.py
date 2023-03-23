@@ -15,7 +15,7 @@ client = discord.Client(command_prefix='!', intents=intents)
 # debt_check: whether yesterday's debt has been carried forward for this user
 # warn: whether this user has been warned that time is running out for the day
 data: dict = {}
-msg_channel = discord.utils.get(client.get_all_channels(), name='General')
+msg_channel = discord.utils.get(client.get_all_channels(), name='general')
 
 if os.path.exists('data.pkl'):
     with open('data.pkl', 'rb') as f:
