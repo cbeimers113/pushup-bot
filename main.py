@@ -1,6 +1,7 @@
 import os
 import pickle
 from datetime import date, datetime, timedelta
+from typing import Optional
 
 import discord
 from discord.ext import tasks
@@ -15,27 +16,33 @@ client = discord.Client(command_prefix='!', intents=intents)
 # debt_check: whether yesterday's debt has been carried forward for this user
 # warn: whether this user has been warned that time is running out for the day
 data: dict = {}
-msg_channel = discord.utils.get(client.get_all_channels(), name='general')
+msg_channel: Optional[discord.TextChannel] = None
 
 if os.path.exists('data.pkl'):
     with open('data.pkl', 'rb') as f:
         data = pickle.load(f)
+        today = str(date.today())
+
+        for user, user_data in data.items():
+            if len(user_data[today]) != 4:
+                user_data[today] += [False]
+
 
 
 @client.event
 async def on_ready() -> None:
     """Perform actions on startup."""
+    global msg_channel
+    msg_channel = discord.utils.get(client.get_all_channels(), name='general')
+
     await client.change_presence(activity=discord.Game(name='help! for usage'))
-    await timed_tasks.start()
     await msg_channel.send('💪')
-    print(msg_channel.name, msg_channel.id, flush=True)
+    await timed_tasks.start()
 
 
 @client.event
 async def on_message(message: discord.Message) -> None:
     """Perform actions when a message is sent."""
-    print(message.channel.name, message.channel.id, flush=True)
-
     if message.author == client.user:
         if 'Cumulative: 100' in message.content:
             await message.add_reaction('💯')
@@ -53,7 +60,7 @@ async def on_message(message: discord.Message) -> None:
             data[user] = {}
 
         if today not in data[user]:
-            data[user][today] = [0, 0, False]
+            data[user][today] = [0, 0, False, False]
 
         if data[user][today][0] < 100 or session < 0:
 
@@ -111,7 +118,7 @@ async def timed_tasks() -> None:
     if hour == 0 and minute == 0:
         for user in data:
             if today not in data[user]:
-                data[user][today] = [0, 0, False]
+                data[user][today] = [0, 0, False, False]
 
             if yesterday in data[user] and not data[user][yesterday][2]:
                 debt = 100 - data[user][yesterday][0]
@@ -123,13 +130,20 @@ async def timed_tasks() -> None:
             print(data[user][today])
             print(flush=True)
 
-    # Snap fingers at anyone who needs to do more pushups at 12:30
-    if hour == 23 and minute == 30:
-        warn_msg = '🫰🫰' + '\n'.join([
-            user.mention for user in msg_channel.members if data[user.name][today][0] < 100
-        ])
+    # Snap fingers at anyone who needs to do more pushups at 11pm
+    if hour == 23 and minute == 0:
+        warn_msg = '🫰🫰\n'
+        lacking = False
 
-        await msg_channel.send(warn_msg)
+        for user in msg_channel.members:
+            if user.name in data and data[user.name][today][0] < 100 and not data[user.name][today][3]:
+                lack = 100 - sum(data[user.name][today][:2])
+                warn_msg += f'{user.mention}! You need {lack} more pushups!\n'
+                data[user.name][today][3] = True
+                lacking = True
+
+        if lacking:
+            await msg_channel.send(warn_msg.strip())
 
 with open('token.txt', 'r') as f:
     client.run(f.read())
