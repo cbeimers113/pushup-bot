@@ -34,10 +34,10 @@ async def on_message(message: discord.Message) -> None:
 
     mstr: str = message.content
     today: str = str(date.today())
+    user: str = message.author.name
 
     # If the message just contains a number (session count), log it
     if mstr.isnumeric() or mstr.startswith('-') and mstr[1:].isnumeric():
-        user: str = message.author.name
         session: int = int(message.content)
 
         if user not in data:
@@ -83,7 +83,11 @@ async def on_message(message: discord.Message) -> None:
 
     # Print the help message
     elif mstr == 'help!':
-        await message.channel.send('Simply send your session count in a message\nUse a negative count to undo')
+        await message.channel.send('Simply send your session count in a message\nUse a negative count to undo\nUse "?" to see your stats for today.')
+
+    # Show stats for the day for the user
+    elif mstr == '?':
+        await message.channel.send(f'{message.author.mention}\nYour pushups for {today}:\nCumulative: {data[user][today][0]}\nDebt: {data[user][today][1]}')
 
 
 @tasks.loop(minutes=1)
