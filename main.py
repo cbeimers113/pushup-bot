@@ -52,7 +52,7 @@ async def on_message(message: discord.Message) -> None:
         if today not in data[user]:
             data[user][today] = [0, 0, False]
 
-        if data[user][today][0] < 100:
+        if data[user][today][0] < 100 or session < 0:
 
             # Pay off debt first, then accumulate new pushups
             if data[user][today][1] > 0:
