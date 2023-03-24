@@ -6,6 +6,9 @@ from typing import Optional
 import discord
 from discord.ext import tasks
 
+
+print('Loading', flush=True)
+
 intents = discord.Intents.all()
 client = discord.Client(command_prefix='!', intents=intents)
 
@@ -27,6 +30,12 @@ if os.path.exists('data.pkl'):
             if len(user_data[today]) != 4:
                 user_data[today] += [False]
 
+
+def save() -> None:
+    """Save the updated data to disk."""
+    if data:
+        with open('data.pkl', 'wb') as f:
+            pickle.dump(data, f)
 
 
 @client.event
@@ -96,6 +105,7 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send(f"{message.author.mention}, stop! You're done for the day\n(Bonus session: {session})")
 
         await message.delete()
+        save()
 
     # Print the help message
     elif mstr == 'help!':
@@ -125,11 +135,6 @@ async def timed_tasks() -> None:
                 data[user][today][1] = data[user][yesterday][1] + debt
                 data[user][yesterday][2] = True
 
-            print(data[user][yesterday])
-            print('↓')
-            print(data[user][today])
-            print(flush=True)
-
     # Snap fingers at anyone who needs to do more pushups at 11pm
     if hour == 23 and minute == 0:
         warn_msg = '🫰🫰\n'
@@ -147,7 +152,5 @@ async def timed_tasks() -> None:
 
 with open('token.txt', 'r') as f:
     client.run(f.read())
-
-if data:
-    with open('data.pkl', 'wb') as f:
-        pickle.dump(data, f)
+    print('Exiting', flush=True)
+    save()
